@@ -783,6 +783,7 @@ class Convertor:
         self.context = uno.getComponentContext()
         self.svcmgr = self.context.ServiceManager
         resolver = self.svcmgr.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", self.context)
+        self.dispatcher = self.svcmgr.createInstanceWithContext("com.sun.star.frame.DispatchHelper", self.context)
 
         ### Test for an existing connection
         info(3, 'Connection type: %s' % op.connection)
@@ -966,6 +967,10 @@ class Convertor:
             if not document:
                 raise UnoException("The document '%s' could not be opened." % inputurl, None)
 
+            # DEBUG: Inspect what members 'document' object has.
+            #xs = ("%s" % x for x in dir(document))
+            #print("dir(document):\n%s" % '\n'.join(xs))
+
             ### Import style template
             phase = "import-style"
             if op.template:
@@ -985,6 +990,10 @@ class Convertor:
 #                document.calculateAll()
 #            except AttributeError:
 #                pass
+
+            ### Update All
+            frame = document.getCurrentController().getFrame()
+            self.dispatcher.executeDispatch(frame, ".uno:UpdateAllIndexes", "", 0, [])
 
             ### Update document links
             phase = "update-links"
